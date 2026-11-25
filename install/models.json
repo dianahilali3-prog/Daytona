@@ -1,0 +1,91 @@
+{
+  "_comment": "Modèles nécessaires par fonction. 'dir' est relatif à ComfyUI/models. Tailles approximatives.",
+  "features": {
+    "wan_commun": {
+      "label": "Base commune aux vidéos Wan (obligatoire pour toute vidéo)",
+      "models": [
+        {"dir": "text_encoders", "file": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "gb": 6.3,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"},
+        {"dir": "vae", "file": "Wan2_1_VAE_bf16.safetensors", "gb": 0.25,
+         "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1_VAE_bf16.safetensors"},
+        {"dir": "clip_vision", "file": "clip_vision_h.safetensors", "gb": 1.2,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors"},
+        {"dir": "loras", "file": "lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors", "gb": 0.7,
+         "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"}
+      ]
+    },
+    "recast": {
+      "label": "Recast : remplace-moi dans ma vidéo (SCAIL-2 + SAM 3.1)",
+      "requires": ["wan_commun"],
+      "models": [
+        {"dir": "diffusion_models", "file": "wan2.1_14B_SCAIL_2_int8_convrot.safetensors", "gb": 15.5,
+         "url": "https://huggingface.co/Comfy-Org/SCAIL-2/resolve/main/diffusion_models/wan2.1_14B_SCAIL_2_int8_convrot.safetensors"},
+        {"dir": "loras", "file": "wan2.1_SCAIL_2_DPO_lora_bf16.safetensors", "gb": 1.1,
+         "url": "https://huggingface.co/Comfy-Org/SCAIL-2/resolve/main/loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors"},
+        {"dir": "checkpoints", "file": "sam3.1_multiplex_fp16.safetensors", "gb": 1.6,
+         "url": "https://huggingface.co/Comfy-Org/sam3.1/resolve/main/checkpoints/sam3.1_multiplex_fp16.safetensors"}
+      ]
+    },
+    "recast_fond": {
+      "label": "Recast + nouveau décor généré (Wan-Animate-2)",
+      "requires": ["wan_commun"],
+      "models": [
+        {"dir": "diffusion_models", "file": "wan_animate_2_int8_convrot.safetensors", "gb": 15.5,
+         "url": "https://huggingface.co/Comfy-Org/Wan-Animate-2/resolve/main/diffusion_models/wan_animate_2_int8_convrot.safetensors"}
+      ]
+    },
+    "parler": {
+      "label": "Avatar parlant / lip-sync (InfiniteTalk)",
+      "requires": ["wan_commun"],
+      "models": [
+        {"dir": "diffusion_models", "file": "Wan2_1-I2V-14B-480p_fp8_e4m3fn_scaled_KJ.safetensors", "gb": 15.5,
+         "url": "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/I2V/Wan2_1-I2V-14B-480p_fp8_e4m3fn_scaled_KJ.safetensors"},
+        {"dir": "model_patches", "file": "wan2.1_infiniteTalk_single_fp16.safetensors", "gb": 4.8,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/model_patches/wan2.1_infiniteTalk_single_fp16.safetensors"},
+        {"dir": "audio_encoders", "file": "wav2vec2-chinese-base_fp16.safetensors", "gb": 0.2,
+         "url": "https://huggingface.co/Kijai/wav2vec2_safetensors/resolve/main/wav2vec2-chinese-base_fp16.safetensors"}
+      ]
+    },
+    "photos": {
+      "label": "Photos de l'avatar (Qwen-Image-Edit 2511)",
+      "models": [
+        {"dir": "diffusion_models", "file": "qwen_image_edit_2511_fp8mixed.safetensors", "gb": 20.4,
+         "url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/resolve/main/split_files/diffusion_models/qwen_image_edit_2511_fp8mixed.safetensors"},
+        {"dir": "text_encoders", "file": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "gb": 9.4,
+         "url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors"},
+        {"dir": "vae", "file": "qwen_image_vae.safetensors", "gb": 0.25,
+         "url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors"},
+        {"dir": "loras", "file": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors", "gb": 0.85,
+         "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning/resolve/main/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors"}
+      ]
+    },
+    "animer_photo": {
+      "label": "Photo -> vidéo (Wan 2.2 I2V 14B)",
+      "requires": ["wan_commun"],
+      "models": [
+        {"dir": "diffusion_models", "file": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors", "gb": 14.3,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors"},
+        {"dir": "diffusion_models", "file": "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors", "gb": 14.3,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors"},
+        {"dir": "loras", "file": "wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors", "gb": 1.2,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors"},
+        {"dir": "loras", "file": "wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors", "gb": 1.2,
+         "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors"}
+      ]
+    },
+    "fond": {
+      "label": "Détourage / changement de fond photo (BiRefNet)",
+      "models": [
+        {"dir": "background_removal", "file": "birefnet.safetensors", "gb": 0.45,
+         "url": "https://huggingface.co/Comfy-Org/BiRefNet/resolve/main/background_removal/birefnet.safetensors"}
+      ]
+    },
+    "fluidite": {
+      "label": "Interpolation d'images (FILM) pour des vidéos plus fluides",
+      "models": [
+        {"dir": "frame_interpolation", "file": "film_net_fp16.safetensors", "gb": 0.07,
+         "url": "https://huggingface.co/Comfy-Org/frame_interpolation/resolve/main/frame_interpolation/film_net_fp16.safetensors"}
+      ]
+    }
+  }
+}

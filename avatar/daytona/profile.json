@@ -1,0 +1,8 @@
+{
+  "name": "Daytona",
+  "reference_images": ["daytona_01.png", "daytona_02.png"],
+  "voice_sample": "voice.wav",
+  "language": "fr",
+  "description_en": "a young woman with long voluminous dark brown curly hair with a center part, light grey-blue eyes, golden tan skin with light freckles, thick defined eyebrows, long lashes, glossy nude-pink full lips, gold chain-link hoop earrings, a gold curb chain choker and a thin gold necklace with a round engraved medallion pendant, wearing a black halter top with a ring cut-out",
+  "style_en": "photorealistic, cinematic moody lighting, deep red rim light, dark background, high detail skin texture, 85mm portrait"
+}
