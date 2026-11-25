@@ -12,19 +12,19 @@ et tu génères autant de vidéos que tu veux, sans crédits ni abonnement.
 
 | Higgsfield | Daytona Studio (onglet) | Modèle open source utilisé |
 |---|---|---|
-| **Recast** / remplacement de personnage | 🔁 *Remplace-moi* → « Garder mon décor » | **SCAIL-2** (Wan 2.1 14B) + **SAM 3.1** (détection automatique de la personne) |
-| Recast + changement de décor | 🔁 *Remplace-moi* → « Nouveau décor généré » | **Wan-Animate-2** (le décor vient de ton texte) |
-| **Speak** / avatar parlant, lip-sync | 🗣️ *Faire parler* | **InfiniteTalk** (Wan 2.1 I2V 14B), durée illimitée |
+| **Recast** / remplacement de personnage | 🔁 *Recast* → « Garder mon décor » | **SCAIL-2** (Wan 2.1 14B) + **SAM 3.1** (détection automatique de la personne) |
+| Recast + changement de décor | 🔁 *Recast* → « Nouveau décor généré » | **Wan-Animate-2** (le décor vient de ton texte) |
+| **Speak** / avatar parlant, lip-sync | 🗣️ *Parler* | **InfiniteTalk** (Wan 2.1 I2V 14B), durée illimitée |
 | Voix / clonage de voix | 🎙️ *Voix* | **Chatterbox Multilingual** (TTS FR + 22 langues) et **Chatterbox VC** (ta voix → voix de Daytona) |
 | **Soul** / photos du personnage | 📸 *Photos* | **Qwen-Image-Edit 2511** (+ LoRA Lightning 4 étapes) |
-| Image → vidéo (DoP) | 🎬 *Animer une photo* | **Wan 2.2 I2V 14B** (+ LoRA Lightx2v 4 étapes) |
-| Changer le fond | 🖼️ *Changer le fond* | Qwen-Image-Edit (par texte) ou **BiRefNet** (détourage) |
+| Image → vidéo (DoP) | 🎬 *Animer* | **Wan 2.2 I2V 14B** (+ LoRA Lightx2v 4 étapes) |
+| Changer le fond | 🖼️ *Fond* | Qwen-Image-Edit (par texte) ou **BiRefNet** (détourage) |
 | Upscale / fluidité | ✨ *Finitions* | **FILM** (x2 images/s), musique de fond ; SeedVR2 dans ComfyUI |
 
 ### Le flux « mon avatar me remplace totalement »
 
 1. Tu te filmes (story, face caméra, danse, unboxing…).
-2. Onglet **Remplace-moi** : l'IA trouve toute seule la personne dans ta vidéo (SAM 3.1),
+2. Onglet **Recast** : l'IA trouve toute seule la personne dans ta vidéo (SAM 3.1),
    la remplace par Daytona **en gardant tes mouvements, tes expressions et ton lip-sync**.
 3. Ta voix est convertie en **voix de Daytona** (même texte, même intonation, autre timbre).
 4. Option : **nouveau décor** généré à partir d'un texte (« rooftop à Dubaï au coucher du soleil »).
@@ -32,6 +32,57 @@ et tu génères autant de vidéos que tu veux, sans crédits ni abonnement.
 
 Les vidéos longues sont gérées automatiquement : le studio découpe en segments de 81 images
 et les enchaîne (raccords anti-saut de couleur inclus).
+
+## 📱 Utiliser le studio depuis ton iPhone (17 Pro Max ou autre)
+
+> **Important** : aucun iPhone ne peut faire tourner ces modèles lui-même (il faut ~24 Go de mémoire graphique NVIDIA ;
+> l'iPhone n'a ni cette mémoire ni CUDA). Le calcul se fait sur un **GPU dans le cloud** et **tu pilotes tout depuis ton iPhone** :
+> tu filmes, tu envoies, tu récupères la vidéo dans Photos. Tout se fait depuis Safari, sans ordinateur.
+
+### Mise en place (une seule fois, entièrement depuis l'iPhone ; le téléchargement des modèles, ~150 Go, prend du temps)
+
+1. Dans Safari, crée un compte sur **runpod.io** et ajoute un peu de crédit.
+2. *Pods → Deploy* : choisis une **RTX 4090** (ou L40S), template **PyTorch**, **Volume disk 200 Go**,
+   et dans *Expose HTTP ports* mets `7860,8188`. Lance le Pod.
+3. Sur le Pod : *Connect → Web Terminal* (s'ouvre dans Safari), puis colle :
+   ```bash
+   cd /workspace && git clone https://github.com/dianahilali3-prog/Daytona.git && cd Daytona
+   git checkout claude/happy-ramanujan-iu9w0n
+   bash install/setup.sh
+   nano .env        # remplace "change-moi" par ton mot de passe, puis Ctrl+O, Entrée, Ctrl+X
+   bash install/start.sh
+   ```
+4. Le terminal affiche ton adresse : `https://<id-du-pod>-7860.proxy.runpod.net`. Ouvre-la dans Safari et connecte-toi
+   (utilisateur `daytona` + ton mot de passe).
+5. **Ajoute-la à ton écran d'accueil** : bouton *Partager* → *Sur l'écran d'accueil*. Daytona Studio s'ouvre alors
+   en plein écran comme une vraie app, avec la photo de Daytona en icône.
+
+Ensuite, pour chaque session : relance le Pod dans l'app/site RunPod, puis `bash install/start.sh` dans le Web Terminal
+(les modèles restent sur le volume, pas besoin de les retélécharger).
+
+### Ce qui est adapté à l'iPhone
+
+- **Vidéos de l'appareil photo** acceptées telles quelles : HEVC, 4K, 60 ips, **HDR / Dolby Vision** (converties
+  automatiquement en couleurs normales, sinon le rendu serait délavé), vidéos verticales.
+- **Photos HEIC** et rotation automatique ; **mémos vocaux** (.m4a) acceptés comme voix.
+- Vidéos finales en **H.264/AAC**, compatibles avec Photos, TikTok, Instagram et CapCut.
+- Onglets et boutons adaptés à l'écran ; mot de passe obligatoire (le studio est accessible sur Internet).
+- **📂 Créations** : si l'iPhone se verrouille ou si Safari se ferme pendant un calcul, la vidéo continue d'être
+  générée et t'attend dans cet onglet.
+- **Notification push quand c'est prêt** (optionnel) : installe l'app gratuite **ntfy**, abonne-toi à un nom de sujet
+  secret (ex. `daytona-7f3k9q`), et mets `export NTFY_TOPIC=daytona-7f3k9q` dans `.env`.
+- **Arrêt automatique du Pod** pour ne pas payer pour rien : `export IDLE_STOP_MINUTES=30` dans `.env`.
+
+### Enregistrer une vidéo dans Photos
+
+Ouvre la vidéo (onglet de la fonction ou *📂 Créations*) → bouton de téléchargement → *Partager* → **Enregistrer la vidéo**.
+
+### Conseils pour filmer avec l'iPhone
+
+- Filme en **vertical, 1080p ou 4K, 30 ips** (Réglages → Appareil photo → Enregistrement vidéo). Le 60 ips n'apporte rien :
+  les modèles travaillent à 16 ips, puis la fluidité ×2 remonte à 32 ips.
+- Pose l'iPhone sur un trépied, avec une bonne lumière de face, et cadre-toi comme la photo de référence de Daytona.
+- Préfère la **caméra arrière** à la caméra selfie : elle donne une meilleure qualité.
 
 ---
 
@@ -116,14 +167,14 @@ python app.py
 
 ## 4. Conseils pour de bons résultats
 
-**Remplace-moi (Recast)**
+**Recast**
 - Cadre ta vidéo **comme la photo de référence** (buste → photo buste ; plan pied → photo en pied).
 - Bonne lumière, **une seule personne**, caméra pas trop secouée, visage bien visible.
 - Pour une tenue précise : génère d'abord une photo de Daytona dans cette tenue (onglet *Photos*),
   puis mets-la dans *Options avancées → Tenue / look spécifique*.
 - Teste d'abord **10 s en 480p**, puis passe en 720p pour la version finale.
 
-**Faire parler**
+**Parler**
 - Écris le texte comme tu parles (ponctuation = respirations). « Émotion » à 0,6-0,8 pour un ton influenceuse dynamique.
 - Photo de face ou 3/4, bouche fermée ou légèrement ouverte.
 

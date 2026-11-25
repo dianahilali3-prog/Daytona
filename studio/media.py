@@ -23,7 +23,8 @@ def probe(path: str | Path) -> dict:
         if s["codec_type"] == "video" and "width" not in info:
             num, den = (s.get("r_frame_rate") or "0/1").split("/")
             info.update(width=int(s["width"]), height=int(s["height"]),
-                        fps=float(num) / float(den or 1) if float(den or 1) else 0)
+                        fps=float(num) / float(den or 1) if float(den or 1) else 0,
+                        hdr=s.get("color_transfer") in HDR_TRANSFERS)
             rot = int((s.get("tags") or {}).get("rotate", 0) or 0)
             for sd in s.get("side_data_list", []) or []:
                 rot = int(sd.get("rotation", rot) or rot)
@@ -32,6 +33,13 @@ def probe(path: str | Path) -> dict:
         elif s["codec_type"] == "audio":
             info["has_audio"] = True
     return info
+
+
+HDR_TRANSFERS = ("arib-std-b67", "smpte2084")  # HLG / PQ : vidéos HDR et Dolby Vision de l'iPhone
+# Conversion HDR -> SDR, sinon les vidéos iPhone donnent des couleurs délavées
+TONEMAP = ("zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,"
+           "zscale=t=bt709:m=bt709:r=tv,format=yuv420p")
+SCALE = "scale='if(gt(iw,ih),min({m},iw),-2)':'if(gt(iw,ih),-2,min({m},ih))'"
 
 
 def is_portrait(path: str | Path) -> bool:
@@ -46,7 +54,7 @@ def prepare_video(src: str | Path, dst: str | Path, fps: int = 16, max_seconds: 
     info = probe(src)
     dur = info["duration"] if not max_seconds else min(info["duration"], max_seconds)
     frames = max(1, int(dur * fps))
-    vf = [f"fps={fps}", f"scale='min({max_side},iw)':-2"]
+    vf = ([TONEMAP] if info.get("hdr") else []) + [f"fps={fps}", SCALE.format(m=max_side), "format=yuv420p"]
     if pad_to_frames and pad_to_frames > frames:
         vf.append(f"tpad=stop_mode=clone:stop={pad_to_frames - frames}")
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-t", f"{dur:.3f}", "-i", str(src), "-vf", ",".join(vf)]
@@ -55,6 +63,39 @@ def prepare_video(src: str | Path, dst: str | Path, fps: int = 16, max_seconds: 
     cmd += ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "16", "-c:a", "aac", "-b:a", "192k", str(dst)]
     _run(cmd)
     return frames
+
+
+def export_iphone(src: str | Path, dst: str | Path) -> Path:
+    """Encodage final compatible iPhone / TikTok / Instagram : H.264 + AAC, lecture
+    immédiate (faststart), enregistrable dans Photos."""
+    has_audio = probe(src)["has_audio"]
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-c:v", "libx264", "-profile:v", "high",
+           "-pix_fmt", "yuv420p", "-crf", "17", "-preset", "medium", "-movflags", "+faststart",
+           "-tag:v", "avc1"]
+    cmd += ["-c:a", "aac", "-b:a", "192k"] if has_audio else ["-an"]
+    _run(cmd + [str(dst)])
+    return Path(dst)
+
+
+def normalize_image(src: str | Path, dst_dir: str | Path) -> str:
+    """Photos iPhone : HEIC -> PNG, rotation EXIF appliquée, couleurs en RGB."""
+    from PIL import ImageOps
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+    except ImportError:
+        pass
+    src = Path(src)
+    im = ImageOps.exif_transpose(Image.open(src))
+    if im.mode not in ("RGB", "RGBA"):
+        im = im.convert("RGB")
+    m = 2048  # inutile d'envoyer des photos 48 Mpx aux modèles
+    if max(im.size) > m:
+        im.thumbnail((m, m), Image.LANCZOS)
+    dst = Path(dst_dir) / (src.stem + ".png")
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    im.save(dst)
+    return str(dst)
 
 
 def trim_frames(src: str | Path, dst: str | Path, frames: int):

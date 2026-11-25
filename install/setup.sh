@@ -58,9 +58,16 @@ if [ "${SKIP_MODELS:-0}" != "1" ]; then
   python "$REPO_DIR/install/download_models.py" --comfy "$COMFY_DIR" ${FEATURES:+--features $FEATURES}
 fi
 
-cat > "$REPO_DIR/.env" <<ENV
-COMFY_DIR=$COMFY_DIR
-VENV=$VENV
+# .env : garde tes réglages (mot de passe, ntfy…) et met à jour les chemins
+touch "$REPO_DIR/.env"
+grep -vE '^(COMFY_DIR|VENV)=' "$REPO_DIR/.env" > "$REPO_DIR/.env.tmp" || true
+{ echo "COMFY_DIR=$COMFY_DIR"; echo "VENV=$VENV"; cat "$REPO_DIR/.env.tmp"; } > "$REPO_DIR/.env"
+rm -f "$REPO_DIR/.env.tmp"
+grep -q '^export STUDIO_PASSWORD=' "$REPO_DIR/.env" || cat >> "$REPO_DIR/.env" <<'ENV'
+# --- Accès depuis l'iPhone (modifie ces valeurs) ---
+export STUDIO_PASSWORD=change-moi
+# export NTFY_TOPIC=daytona-xxxxxxxx      # notifications push sur iPhone (app ntfy)
+# export IDLE_STOP_MINUTES=30             # RunPod : arrête le Pod après 30 min sans activité
 ENV
 echo
 echo "✅ Installation terminée. Lance :  bash install/start.sh"

@@ -14,5 +14,10 @@ if ! curl -s http://127.0.0.1:8188/system_stats >/dev/null; then
   for _ in $(seq 1 120); do curl -s http://127.0.0.1:8188/system_stats >/dev/null && break; sleep 2; done
 fi
 echo "==> ComfyUI : http://localhost:8188  (logs : comfyui.log)"
-echo "==> Daytona Studio : http://localhost:7860"
+if [ -n "${RUNPOD_POD_ID:-}" ]; then
+  echo "==> 📱 Sur ton iPhone, ouvre : https://${RUNPOD_POD_ID}-7860.proxy.runpod.net"
+else
+  echo "==> Daytona Studio : http://localhost:7860"
+fi
+[ -z "${STUDIO_PASSWORD:-}" ] && echo "⚠️  Pense à définir STUDIO_PASSWORD (voir README, section iPhone)"
 cd "$REPO_DIR/studio" && COMFY_URL=http://127.0.0.1:8188 python app.py
